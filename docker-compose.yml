@@ -1,0 +1,71 @@
+version: "3"
+ 
+services:
+  web:
+
+    build:
+      context: 
+        ./product
+    deploy:
+      replicas: 3
+    ports:
+      - 9090
+    depends_on:
+      - db
+    networks:
+      - my-network
+    restart: on-failure:5
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9090/healthz" ]
+      interval: 15s
+      retries: 5
+      start_period: 20s
+      timeout: 10s
+  
+  db:
+
+    hostname: postgres
+    image: postgres:alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+      - POSTGRES_SSL=disable
+    ports:
+      - 5432
+    volumes:
+      - postgres-db:/var/lib/postgresql/data
+    networks:
+      - my-network
+    restart: on-failure:5
+    healthcheck:
+      test: ["CMD", "pg_isready"]
+      interval: 15s
+      retries: 5
+      start_period: 15s
+      timeout: 10s
+  
+  nginx:
+  
+    image: nginx:latest
+    ports:
+      - 80:80
+    volumes:    
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - web
+    networks:
+      - my-network
+    restart: on-failure:5
+    healthcheck:
+      test: ["CMD", "service", "nginx", "status"]
+      interval: 15s
+      retries: 5
+      start_period: 15s
+      timeout: 10s
+
+volumes:
+  postgres-db:
+networks:
+  my-network:
+    driver: bridge
