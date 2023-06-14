@@ -1,6 +1,6 @@
 ## Compose sample application
 
-### Go REST API with an Nginx load balancer and a Postgres database
+### Go REST API with a Nginx load balancer and a Postgres database
 
 Project structure:
 ```
